@@ -20,7 +20,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     super.initState();
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 2),
+      duration: const Duration(seconds: 4)
     );
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(
       parent: _animationController,
@@ -71,8 +71,11 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       body: SafeArea(
         child: FadeTransition(
           opacity: _fadeAnimation,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Spacer(),
               // App Logo / Title
@@ -97,7 +100,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               ),
               const SizedBox(height: 24),
               const Text(
-                'Surbhi Gym',
+                'Surbhi Fitness',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 36,
@@ -153,6 +156,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                 ),
               ),
             ],
+          ),
+            ),
           ),
         ),
       ),

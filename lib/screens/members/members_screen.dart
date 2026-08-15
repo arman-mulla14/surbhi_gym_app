@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/app_provider.dart';
 import '../../utils/date_utils.dart';
+import '../../widgets/member_avatar.dart';
 import 'add_member_screen.dart';
 import 'member_detail_screen.dart';
 import 'dart:io';
@@ -222,14 +223,7 @@ class _MembersScreenState extends State<MembersScreen> {
               return Card(
                 margin: const EdgeInsets.only(bottom: 12.0),
                 child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundImage: member.photoPath != null
-                        ? (kIsWeb ? NetworkImage(member.photoPath!) : FileImage(File(member.photoPath!))) as ImageProvider
-                        : null,
-                    child: member.photoPath == null
-                        ? Text(member.name[0].toUpperCase())
-                        : null,
-                  ),
+                  leading: MemberAvatar(member: member),
                   title: Row(
                     children: [
                       Expanded(child: Text(member.name, style: const TextStyle(fontWeight: FontWeight.bold))),

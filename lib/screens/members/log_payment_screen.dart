@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 import '../../models/member.dart';
 import '../../models/payment.dart';
 import '../../providers/app_provider.dart';
+import '../../services/export_service.dart';
+import '../../widgets/member_avatar.dart';
+
 
 class LogPaymentScreen extends StatefulWidget {
   final Member member;
@@ -85,6 +88,9 @@ class _LogPaymentScreenState extends State<LogPaymentScreen> {
         const SnackBar(content: Text('Payment logged successfully')),
       );
 
+      // Generate invoice
+      ExportService.generateInvoicePdf(member: widget.member, payment: payment);
+
       Navigator.pop(context);
     }
   }
@@ -102,7 +108,7 @@ class _LogPaymentScreenState extends State<LogPaymentScreen> {
           children: [
             ListTile(
               contentPadding: EdgeInsets.zero,
-              leading: CircleAvatar(child: Text(widget.member.name[0])),
+              leading: MemberAvatar(member: widget.member),
               title: Text(widget.member.name),
               subtitle: Text('ID: ${widget.member.id}'),
             ),

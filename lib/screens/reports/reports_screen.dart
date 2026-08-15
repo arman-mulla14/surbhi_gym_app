@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/app_provider.dart';
 import '../../utils/date_utils.dart';
+import '../../widgets/member_avatar.dart';
 import '../../models/member.dart';
 import '../../models/payment.dart';
 import '../../services/export_service.dart';
@@ -68,7 +69,7 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
     if (_isMonthWise) {
       return date.year == _selectedMonth.year && date.month == _selectedMonth.month;
     } else {
-      if (_customDateRange == null) return false;
+      if (_customDateRange == null) return true;
       // Truncate times for accurate comparison
       final dateOnly = DateTime(date.year, date.month, date.day);
       final startOnly = DateTime(_customDateRange!.start.year, _customDateRange!.start.month, _customDateRange!.start.day);
@@ -108,6 +109,9 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
         ],
         bottom: TabBar(
           controller: _tabController,
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white70,
+          indicatorColor: Colors.white,
           tabs: const [
             Tab(text: 'New Members'),
             Tab(text: 'Paid'),
@@ -132,6 +136,7 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
                 // It's tricky to define "unpaid in a custom period", so we'll just show members who are currently unpaid,
                 // OR we can just show global pending dues. Let's show members who currently have pending dues.
                 final unpaidMembers = provider.members.where((m) {
+                  if (!_isDateInRange(m.joiningDate)) return false;
                   final memberPayments = provider.payments.where((p) => p.memberId == m.id);
                   final totalPaid = memberPayments.fold(0.0, (sum, p) => sum + p.amount);
                   final pending = m.totalBilled - totalPaid;
@@ -173,6 +178,7 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
     final paymentsInRange = provider.payments.where((p) => _isDateInRange(p.paymentDate)).toList();
     
     final unpaidMembers = provider.members.where((m) {
+      if (!_isDateInRange(m.joiningDate)) return false;
       final memberPayments = provider.payments.where((p) => p.memberId == m.id);
       final totalPaid = memberPayments.fold(0.0, (sum, p) => sum + p.amount);
       final pending = m.totalBilled - totalPaid;
@@ -337,7 +343,7 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
       itemBuilder: (context, index) {
         final member = members[index];
         return ListTile(
-          leading: CircleAvatar(child: Text(member.name[0])),
+          leading: MemberAvatar(member: member),
           title: Text(member.name),
           subtitle: Text('Joined: ${AppDateUtils.formatDate(member.joiningDate)}'),
           trailing: Text('${member.shift} Shift', style: TextStyle(color: Colors.grey.shade600)),
@@ -384,7 +390,7 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
         final pending = member.totalBilled - totalPaid;
 
         return ListTile(
-          leading: CircleAvatar(backgroundColor: Colors.red.shade100, child: Text(member.name[0], style: TextStyle(color: Colors.red.shade800))),
+          leading: MemberAvatar(member: member),
           title: Text(member.name),
           subtitle: Text(member.mobile),
           trailing: Text(AppDateUtils.formatCurrency(pending), style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red, fontSize: 16)),

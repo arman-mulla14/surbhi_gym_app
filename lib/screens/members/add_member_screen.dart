@@ -182,20 +182,34 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
             TextFormField(
               controller: _nameController,
               decoration: const InputDecoration(labelText: 'Full Name', border: OutlineInputBorder()),
-              validator: (value) => value == null || value.isEmpty ? 'Name is required' : null,
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) return 'Name is required';
+                if (value.trim().length < 3) return 'Name must be at least 3 characters';
+                return null;
+              },
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _mobileController,
               decoration: const InputDecoration(labelText: 'Mobile Number', border: OutlineInputBorder()),
               keyboardType: TextInputType.phone,
-              validator: (value) => value == null || value.isEmpty ? 'Mobile is required' : null,
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) return 'Mobile is required';
+                if (!RegExp(r'^\d{10}$').hasMatch(value.trim())) return 'Enter a valid 10-digit mobile number';
+                return null;
+              },
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _parentMobileController,
               decoration: const InputDecoration(labelText: 'Parent Mobile (Optional)', border: OutlineInputBorder()),
               keyboardType: TextInputType.phone,
+              validator: (value) {
+                if (value != null && value.trim().isNotEmpty) {
+                  if (!RegExp(r'^\d{10}$').hasMatch(value.trim())) return 'Enter a valid 10-digit mobile number';
+                }
+                return null;
+              },
             ),
             const SizedBox(height: 16),
             TextFormField(
@@ -252,7 +266,12 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
               controller: _feeAmountController,
               decoration: const InputDecoration(labelText: 'Fee Amount (₹)', border: OutlineInputBorder()),
               keyboardType: TextInputType.number,
-              validator: (value) => value == null || value.isEmpty ? 'Fee Amount is required' : null,
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) return 'Fee Amount is required';
+                final amount = double.tryParse(value.trim());
+                if (amount == null || amount <= 0) return 'Enter a valid fee amount';
+                return null;
+              },
             ),
             const SizedBox(height: 32),
             ElevatedButton(

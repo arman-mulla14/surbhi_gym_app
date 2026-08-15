@@ -6,6 +6,7 @@ import '../../models/member.dart';
 import '../../models/payment.dart';
 import '../../providers/app_provider.dart';
 import '../../utils/date_utils.dart';
+import '../../widgets/member_avatar.dart';
 import 'add_member_screen.dart';
 import 'log_payment_screen.dart';
 
@@ -93,15 +94,74 @@ class MemberDetailScreen extends StatelessWidget {
   Widget _buildProfileHeader(BuildContext context, Member member, bool isActive) {
     return Row(
       children: [
-        CircleAvatar(
-          radius: 40,
-          backgroundColor: Colors.grey[200],
-          backgroundImage: member.photoPath != null
-              ? (kIsWeb ? NetworkImage(member.photoPath!) : FileImage(File(member.photoPath!))) as ImageProvider
-              : null,
-          child: member.photoPath == null
-              ? Text(member.name[0].toUpperCase(), style: const TextStyle(fontSize: 32))
-              : null,
+        GestureDetector(
+          onTap: () {
+            showDialog(
+              context: context,
+              builder: (context) => Dialog(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                child: Center(
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      if (member.photoPath != null && member.photoPath!.isNotEmpty)
+                        Container(
+                          width: 300,
+                          height: 300,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            image: DecorationImage(
+                              fit: BoxFit.cover,
+                              image: kIsWeb 
+                                ? NetworkImage(member.photoPath!) 
+                                : FileImage(File(member.photoPath!)) as ImageProvider,
+                            ),
+                          ),
+                        )
+                      else
+                        Container(
+                          width: 300,
+                          height: 300,
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).primaryColor.withOpacity(0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            member.name.isNotEmpty ? member.name[0].toUpperCase() : '?',
+                            style: TextStyle(
+                              fontSize: 120,
+                              color: Theme.of(context).primaryColor,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      Positioned(
+                        top: 0,
+                        right: 0,
+                        child: Container(
+                          decoration: const BoxDecoration(
+                            color: Colors.black54,
+                            shape: BoxShape.circle,
+                          ),
+                          child: IconButton(
+                            icon: const Icon(Icons.close, color: Colors.white, size: 24),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+          child: MemberAvatar(
+            member: member,
+            radius: 40,
+            textStyle: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+          ),
         ),
         const SizedBox(width: 16),
         Expanded(

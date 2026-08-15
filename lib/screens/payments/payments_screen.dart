@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/app_provider.dart';
 import '../../utils/date_utils.dart';
+import '../../services/export_service.dart';
+import '../../widgets/member_avatar.dart';
 import '../members/log_payment_screen.dart';
 
 class PaymentsScreen extends StatefulWidget {
@@ -54,6 +56,13 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
                     return false;
                   }
                   
+                  // Don't show members before they joined
+                  if (_selectedMonth.year < m.joiningDate.year ||
+                      (_selectedMonth.year == m.joiningDate.year && _selectedMonth.month < m.joiningDate.month)) {
+                    return false;
+                  }
+
+                  
                   // Apply expiry filter
                   if (_expiryFilter != 'All') {
                     final expiryDate = m.joiningDate.add(Duration(days: m.membershipDuration));
@@ -90,11 +99,14 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
 
                   final hasPaid = memberPaymentsThisMonth.isNotEmpty;
                   final amountPaid = memberPaymentsThisMonth.fold(0.0, (sum, p) => sum + p.amount);
+                  memberPaymentsThisMonth.sort((a, b) => b.paymentDate.compareTo(a.paymentDate));
+                  final latestPayment = memberPaymentsThisMonth.isNotEmpty ? memberPaymentsThisMonth.first : null;
 
                   return {
                     'member': m,
                     'hasPaid': hasPaid,
                     'amountPaid': amountPaid,
+                    'latestPayment': latestPayment,
                   };
                 }).toList();
 
@@ -130,10 +142,12 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
                           children: [
                             Row(
                               children: [
-                                CircleAvatar(
-                                  backgroundColor: hasPaid ? Colors.green.shade100 : Colors.red.shade100,
-                                  child: Text(member.name[0], style: TextStyle(color: hasPaid ? Colors.green.shade800 : Colors.red.shade800)),
-                                ),
+                                  MemberAvatar(
+                                    member: member,
+                                    radius: 20,
+                                    backgroundColor: hasPaid ? Colors.green.shade100 : Colors.red.shade100,
+                                    textStyle: TextStyle(color: hasPaid ? Colors.green.shade800 : Colors.red.shade800),
+                                  ),
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
@@ -169,7 +183,26 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text('Amount Paid in $monthName:', style: TextStyle(color: Colors.grey.shade700)),
-                                  Text(AppDateUtils.formatCurrency(amountPaid), style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
+                                  Row(
+                                    children: [
+                                      Text(AppDateUtils.formatCurrency(amountPaid), style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
+                                      const SizedBox(width: 8),
+                                      IconButton(
+                                        icon: const Icon(Icons.share, color: Colors.blue, size: 20),
+                                        padding: EdgeInsets.zero,
+                                        constraints: const BoxConstraints(),
+                                        tooltip: 'Share Receipt',
+                                        onPressed: () {
+                                          if (item['latestPayment'] != null) {
+                                            ExportService.generateInvoicePdf(
+                                              member: member,
+                                              payment: item['latestPayment'],
+                                            );
+                                          }
+                                        },
+                                      ),
+                                    ],
+                                  ),
                                 ],
                               ),
                             ],

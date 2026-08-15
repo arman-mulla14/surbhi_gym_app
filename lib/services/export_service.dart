@@ -139,6 +139,59 @@ class ExportService {
     }
   }
 
+  static Future<void> generateInvoicePdf({
+    required Member member,
+    required Payment payment,
+  }) async {
+    final pdf = pw.Document();
+
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a5,
+        margin: const pw.EdgeInsets.all(32),
+        build: (pw.Context context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Header(
+                level: 0,
+                child: pw.Text('Surbhi Gym - Payment Receipt', style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold)),
+              ),
+              pw.SizedBox(height: 20),
+              pw.Text('Date: ${AppDateUtils.formatDate(payment.paymentDate)}'),
+              pw.Text('Receipt No: ${payment.id}'),
+              pw.SizedBox(height: 20),
+              pw.Text('Member Details:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+              pw.Text('Name: ${member.name}'),
+              pw.Text('ID: ${member.id}'),
+              pw.Text('Mobile: ${member.mobile}'),
+              pw.SizedBox(height: 20),
+              pw.Text('Payment Details:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+              pw.Text('Amount Paid: ${payment.amount.toStringAsFixed(0)}'),
+              pw.Text('Payment Method: ${payment.paymentMethod}'),
+              if (payment.notes != null && payment.notes!.isNotEmpty)
+                pw.Text('Notes: ${payment.notes}'),
+              pw.SizedBox(height: 40),
+              pw.Align(
+                alignment: pw.Alignment.center,
+                child: pw.Text('Thank you!', style: pw.TextStyle(fontStyle: pw.FontStyle.italic, fontSize: 16)),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+
+    final bytes = await pdf.save();
+    final fileName = 'Invoice_${payment.id}.pdf';
+    
+    if (kIsWeb) {
+      await _saveAndShareFile(bytes, fileName);
+    } else {
+      await Printing.sharePdf(bytes: bytes, filename: fileName);
+    }
+  }
+
   static Future<void> _saveAndShareFile(List<int> bytes, String fileName) async {
     if (kIsWeb) {
       downloadFileOnWeb(bytes, fileName);
